@@ -1,16 +1,18 @@
 import random
-import nltk
-from nltk.corpus import words
 
 class WordleClone:
-	def __init__(self, word_length=5):
+	def __init__(self):
 		"""Initialize the WordleClone game with a list of five-letter words."""
-		self.word_length = 5
-		nltk.download('words', quiet=True)
-		self.word_list = [word.upper() for word in words.words() if len(word) == 5 and word.isalpha()]
+		self.word_list = self.get_words()
 		self.target_word = random.choice(self.word_list)
 		self.max_attempts = 6
 		self.attempts = []
+		
+	def get_words(self):
+		word_file = 'words.txt'
+		with open(word_file, 'r') as f:
+			words = f.readlines()
+		return [_.strip().upper() for _ in words]
 
 	def guess_word(self, guess):
 		"""Make a guess and return feedback on the guess."""
