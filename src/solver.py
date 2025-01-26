@@ -8,7 +8,11 @@ class WordleSolver:
 
 	def init_word_list(self):
 		nltk.download('words', quiet=True)
-		return [word.upper() for word in words.words() if len(word) == 5 and word.isalpha()]
+		with open('words.txt', 'r') as f:
+			extra_words = f.readlines()
+		extra_words = [_.strip().upper() for _ in extra_words]
+		nltk_words = [word.upper() for word in words.words() if len(word) == 5 and word.isalpha()]
+		return extra_words + nltk_words
 
 	def get_letter_freq(self, word_list):
 		letter_freq = {}
@@ -48,16 +52,17 @@ class WordleSolver:
 		return [_ for _ in word_list if letter not in _]
 	
 	def generate_guess_word(self, word_list, allow_repeat):
-		word_list = []
+		print(f'Word list length: {len(word_list)}')
+		letter_list = []
 		for i in range(5):
 			letter_freq = self.get_letter_freq_by_pos(word_list)
 			letter_freq_list = self.sort_letter_freq_dict(letter_freq[i])
 			if not allow_repeat:
-				letter_freq_list = [_ for _ in letter_freq_list if _[0] not in word_list]
+				letter_freq_list = [_ for _ in letter_freq_list if _[0] not in letter_list]
 			letter_choice = random.choice([_[0] for _ in letter_freq_list][:3]) 
-			word_list.append(letter_choice)
+			letter_list.append(letter_choice)
 			word_list = self.filter_by_letter_loc(letter_choice, i, word_list)
-		return ''.join(word_list)
+		return ''.join(letter_list)
 
 	def get_guess_word(self, word_list, allow_repeat=True):
 		for _ in range(5):
@@ -82,14 +87,12 @@ class WordleSolver:
 		attempt = 1
 		guess = self.get_guess_word(viable_words, allow_repeat=False)
 		while True:
-			print(guess)
+			print(f'Guess: {guess}')
 			feedback = wc.guess_word(guess)
 			print(feedback)
 			if isinstance(feedback, str) and feedback.startswith('Congratulations!'):
-				print('Congratulations!')
 				return (True, attempt)
 			elif isinstance(feedback, str) and feedback.startswith('Game Over!'):
-				print('Game Over!')
 				return (False, -1)
 			viable_words = self.apply_feedback_to_word_list(guess, feedback, viable_words)
 			guess = self.get_guess_word(viable_words)
